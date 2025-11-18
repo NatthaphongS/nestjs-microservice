@@ -1,0 +1,29 @@
+{
+  "name": "nestjs-microservices-demo",
+  "version": "1.0.0",
+  "description": "Demo project for learning NestJS microservices architecture",
+  "private": true,
+  "workspaces": [
+    "services/*"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:services",
+    "install:services": "npm install --workspace=services/api-gateway && npm install --workspace=services/auth-service && npm install --workspace=services/users-service && npm install --workspace=services/products-service",
+    "dev:gateway": "npm run start:dev --workspace=services/api-gateway",
+    "dev:auth": "npm run start:dev --workspace=services/auth-service",
+    "dev:users": "npm run start:dev --workspace=services/users-service",
+    "dev:products": "npm run start:dev --workspace=services/products-service",
+    "build:all": "npm run build --workspaces",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "keywords": [
+    "nestjs",
+    "microservices",
+    "tcp",
+    "redis",
+    "rabbitmq"
+  ],
+  "author": "",
+  "license": "MIT"
+}

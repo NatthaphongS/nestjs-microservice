@@ -1,0 +1,138 @@
+### API Tests for NestJS Microservices Demo
+### You can use this file with REST Client VSCode extension
+
+@baseUrl = http://localhost:3000/api
+
+### Health Check
+GET {{baseUrl}}/health
+
+### ========================================
+### Authentication Tests
+### ========================================
+
+### Register New User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "newuser@example.com",
+  "password": "securepass123",
+  "name": "New User"
+}
+
+### Login (Demo User)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo@example.com",
+  "password": "password123"
+}
+
+### Login (Invalid Credentials)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "wrong@example.com",
+  "password": "wrongpass"
+}
+
+### Validate Token (Replace with actual token from login response)
+POST {{baseUrl}}/auth/validate
+Content-Type: application/json
+
+{
+  "token": "your-jwt-token-here"
+}
+
+### ========================================
+### Users Tests
+### ========================================
+
+### Get All Users
+GET {{baseUrl}}/users
+
+### Get User by ID
+GET {{baseUrl}}/users/1
+
+### Get Non-existent User
+GET {{baseUrl}}/users/999
+
+### Create New User
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "name": "Alice Johnson"
+}
+
+### Update User
+PUT {{baseUrl}}/users/1
+Content-Type: application/json
+
+{
+  "name": "John Updated Doe",
+  "email": "john.updated@example.com"
+}
+
+### Delete User
+DELETE {{baseUrl}}/users/1
+
+### ========================================
+### Products Tests
+### ========================================
+
+### Get All Products
+GET {{baseUrl}}/products
+
+### Get Product by ID
+GET {{baseUrl}}/products/1
+
+### Get Non-existent Product
+GET {{baseUrl}}/products/999
+
+### Create New Product
+POST {{baseUrl}}/products
+Content-Type: application/json
+
+{
+  "name": "Gaming Monitor",
+  "price": 399.99,
+  "description": "27-inch 144Hz gaming monitor"
+}
+
+### Create Product (No Description)
+POST {{baseUrl}}/products
+Content-Type: application/json
+
+{
+  "name": "USB Cable",
+  "price": 9.99
+}
+
+### Update Product
+PUT {{baseUrl}}/products/1
+Content-Type: application/json
+
+{
+  "name": "Gaming Laptop Pro",
+  "price": 1499.99,
+  "description": "High-end gaming laptop with RTX 4080"
+}
+
+### Update Product (Partial)
+PUT {{baseUrl}}/products/2
+Content-Type: application/json
+
+{
+  "price": 24.99
+}
+
+### Delete Product
+DELETE {{baseUrl}}/products/1
+
+### ========================================
+### End of Tests
+### ========================================

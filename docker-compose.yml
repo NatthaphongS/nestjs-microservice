@@ -1,0 +1,182 @@
+version: '3.8'
+
+services:
+  # PostgreSQL for Auth Service
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    environment:
+      POSTGRES_USER: authuser
+      POSTGRES_PASSWORD: authpass
+      POSTGRES_DB: authdb
+    ports:
+      - "5435:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authuser -d authdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Users Service
+  users-db:
+    image: postgres:16-alpine
+    container_name: users-db
+    environment:
+      POSTGRES_USER: usersuser
+      POSTGRES_PASSWORD: userspass
+      POSTGRES_DB: usersdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - users-db-data:/var/lib/postgresql/data
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usersuser -d usersdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Products Service
+  products-db:
+    image: postgres:16-alpine
+    container_name: products-db
+    environment:
+      POSTGRES_USER: productsuser
+      POSTGRES_PASSWORD: productspass
+      POSTGRES_DB: productsdb
+    ports:
+      - "5434:5432"
+    volumes:
+      - products-db-data:/var/lib/postgresql/data
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U productsuser -d productsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - JWT_SECRET=your-secret-key-change-in-production
+      - DATABASE_URL=postgresql://authuser:authpass@auth-db:5432/authdb
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - microservices
+
+  # Users Service
+  users-service:
+    build:
+      context: ./services/users-service
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - DATABASE_URL=postgresql://usersuser:userspass@users-db:5432/usersdb
+    depends_on:
+      users-db:
+        condition: service_healthy
+    networks:
+      - microservices
+
+  # Products Service
+  products-service:
+    build:
+      context: ./services/products-service
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - DATABASE_URL=postgresql://productsuser:productspass@products-db:5432/productsdb
+    depends_on:
+      products-db:
+        condition: service_healthy
+    networks:
+      - microservices
+
+  # PostgreSQL for Orders Service
+  orders-db:
+    image: postgres:16-alpine
+    container_name: orders-db
+    environment:
+      POSTGRES_USER: ordersuser
+      POSTGRES_PASSWORD: orderspass
+      POSTGRES_DB: ordersdb
+    ports:
+      - "5436:5432"
+    volumes:
+      - orders-db-data:/var/lib/postgresql/data
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ordersuser -d ordersdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Orders Service
+  orders-service:
+    build:
+      context: ./services/orders-service
+      dockerfile: Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - DATABASE_URL=postgresql://ordersuser:orderspass@orders-db:5432/ordersdb
+    depends_on:
+      orders-db:
+        condition: service_healthy
+    networks:
+      - microservices
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - AUTH_SERVICE_HOST=auth-service
+      - AUTH_SERVICE_PORT=3001
+      - USERS_SERVICE_HOST=users-service
+      - USERS_SERVICE_PORT=3002
+      - PRODUCTS_SERVICE_HOST=products-service
+      - PRODUCTS_SERVICE_PORT=3003
+      - ORDERS_SERVICE_HOST=orders-service
+      - ORDERS_SERVICE_PORT=3004
+    depends_on:
+      - auth-service
+      - users-service
+      - products-service
+      - orders-service
+    networks:
+      - microservices
+
+volumes:
+  auth-db-data:
+  users-db-data:
+  products-db-data:
+  orders-db-data:
+
+networks:
+  microservices:
+    driver: bridge
