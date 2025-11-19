@@ -1,4 +1,5 @@
 // Shared types across microservices
+// These types align with the gRPC proto definitions
 
 export interface User {
   id: string;
@@ -13,6 +14,19 @@ export interface Product {
   name: string;
   price: number;
   description?: string;
+}
+
+export interface OrderItem {
+  productId: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  id: string;
+  userId: string;
+  items: OrderItem[];
+  status: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,25 +50,42 @@ export interface ServiceResponse<T = any> {
   data?: T;
 }
 
-// Message patterns
-export enum AuthMessagePatterns {
-  LOGIN = 'login',
-  REGISTER = 'register',
-  VALIDATE = 'validate',
+// gRPC Service Names (used by API Gateway)
+export enum GrpcServices {
+  AUTH = 'AuthService',
+  USERS = 'UsersService',
+  PRODUCTS = 'ProductsService',
+  ORDERS = 'OrdersService',
 }
 
-export enum UsersMessagePatterns {
-  GET_ALL = 'get_all_users',
-  GET_ONE = 'get_user',
-  CREATE = 'create_user',
-  UPDATE = 'update_user',
-  DELETE = 'delete_user',
+// gRPC Method Names
+export enum AuthMethods {
+  LOGIN = 'Login',
+  REGISTER = 'Register',
+  VALIDATE = 'Validate',
 }
 
-export enum ProductsMessagePatterns {
-  GET_ALL = 'get_all_products',
-  GET_ONE = 'get_product',
-  CREATE = 'create_product',
-  UPDATE = 'update_product',
-  DELETE = 'delete_product',
+export enum UsersMethods {
+  GET_ALL = 'GetAllUsers',
+  GET_ONE = 'GetUser',
+  CREATE = 'CreateUser',
+  UPDATE = 'UpdateUser',
+  DELETE = 'DeleteUser',
+}
+
+export enum ProductsMethods {
+  GET_ALL = 'GetAllProducts',
+  GET_ONE = 'GetProduct',
+  CREATE = 'CreateProduct',
+  UPDATE = 'UpdateProduct',
+  DELETE = 'DeleteProduct',
+}
+
+export enum OrdersMethods {
+  GET_ALL = 'GetAllOrders',
+  GET_ONE = 'GetOrder',
+  GET_USER_ORDERS = 'GetUserOrders',
+  CREATE = 'CreateOrder',
+  UPDATE_STATUS = 'UpdateOrderStatus',
+  CANCEL = 'CancelOrder',
 }

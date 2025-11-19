@@ -1,108 +1,151 @@
-import { Injectable } from '@nestjs/common';
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
-export class UsersService {
-  // In-memory storage (for demo purposes)
-  private users: User[] = [
-    {
-      id: '1',
-      email: 'john@example.com',
-      name: 'John Doe',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '2',
-      email: 'jane@example.com',
-      name: 'Jane Smith',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
+export class UsersService implements OnModuleInit {
+  private prisma = new PrismaClient();
 
-  findAll() {
-    return {
-      success: true,
-      data: this.users,
-    };
+  async onModuleInit() {
+    await this.prisma.$connect();
+    console.log('Users Service: Prisma connected to database');
   }
 
-  findOne(id: string) {
-    const user = this.users.find((u) => u.id === id);
-    if (!user) {
+  async findAll() {
+    try {
+      const users = await this.prisma.user.findMany({
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      return {
+        success: true,
+        data: users,
+      };
+    } catch (error) {
       return {
         success: false,
-        message: 'User not found',
+        message: 'Failed to fetch users',
+        error: error.message,
       };
     }
-    return {
-      success: true,
-      data: user,
-    };
   }
 
-  create(data: { email: string; name: string }) {
-    const newUser: User = {
-      id: (this.users.length + 1).toString(),
-      email: data.email,
-      name: data.name,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.users.push(newUser);
-    return {
-      success: true,
-      message: 'User created successfully',
-      data: newUser,
-    };
-  }
+  async findOne(id: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
 
-  update(id: string, data: { email?: string; name?: string }) {
-    const userIndex = this.users.findIndex((u) => u.id === id);
-    if (userIndex === -1) {
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+        };
+      }
+
+      return {
+        success: true,
+        data: user,
+      };
+    } catch (error) {
       return {
         success: false,
-        message: 'User not found',
+        message: 'Failed to fetch user',
+        error: error.message,
       };
     }
-
-    const updatedUser = {
-      ...this.users[userIndex],
-      ...data,
-      updatedAt: new Date(),
-    };
-
-    this.users[userIndex] = updatedUser;
-
-    return {
-      success: true,
-      message: 'User updated successfully',
-      data: updatedUser,
-    };
   }
 
-  remove(id: string) {
-    const userIndex = this.users.findIndex((u) => u.id === id);
-    if (userIndex === -1) {
+  async create(data: { email: string; name: string }) {
+    try {
+      const newUser = await this.prisma.user.create({
+        data: {
+          email: data.email,
+          name: data.name,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'User created successfully',
+        data: newUser,
+      };
+    } catch (error) {
       return {
         success: false,
-        message: 'User not found',
+        message: 'Failed to create user',
+        error: error.message,
       };
     }
+  }
 
-    this.users.splice(userIndex, 1);
+  async update(id: string, data: { email?: string; name?: string }) {
+    try {
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
 
-    return {
-      success: true,
-      message: 'User deleted successfully',
-    };
+      return {
+        success: true,
+        message: 'User updated successfully',
+        data: updatedUser,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'User not found or update failed',
+        error: error.message,
+      };
+    }
+  }
+
+  async remove(id: string) {
+    try {
+      await this.prisma.user.delete({
+        where: { id },
+      });
+
+      return {
+        success: true,
+        message: 'User deleted successfully',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'User not found or delete failed',
+        error: error.message,
+      };
+    }
+  }
+
+  async onModuleDestroy() {
+    await this.prisma.$disconnect();
   }
 }

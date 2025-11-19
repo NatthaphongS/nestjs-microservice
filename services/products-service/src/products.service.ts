@@ -1,120 +1,127 @@
-import { Injectable } from '@nestjs/common';
-
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
-export class ProductsService {
-  // In-memory storage (for demo purposes)
-  private products: Product[] = [
-    {
-      id: '1',
-      name: 'Laptop',
-      price: 999.99,
-      description: 'High-performance laptop',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '2',
-      name: 'Mouse',
-      price: 29.99,
-      description: 'Wireless mouse',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '3',
-      name: 'Keyboard',
-      price: 79.99,
-      description: 'Mechanical keyboard',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
+export class ProductsService implements OnModuleInit {
+  private prisma = new PrismaClient();
 
-  findAll() {
-    return {
-      success: true,
-      data: this.products,
-    };
+  async onModuleInit() {
+    await this.prisma.$connect();
+    console.log('Products Service: Prisma connected to database');
   }
 
-  findOne(id: string) {
-    const product = this.products.find((p) => p.id === id);
-    if (!product) {
+  async findAll() {
+    try {
+      const products = await this.prisma.product.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return {
+        success: true,
+        data: products,
+      };
+    } catch (error) {
       return {
         success: false,
-        message: 'Product not found',
+        message: 'Failed to fetch products',
+        error: error.message,
       };
     }
-    return {
-      success: true,
-      data: product,
-    };
   }
 
-  create(data: { name: string; price: number; description?: string }) {
-    const newProduct: Product = {
-      id: (this.products.length + 1).toString(),
-      name: data.name,
-      price: data.price,
-      description: data.description,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.products.push(newProduct);
-    return {
-      success: true,
-      message: 'Product created successfully',
-      data: newProduct,
-    };
-  }
+  async findOne(id: string) {
+    try {
+      const product = await this.prisma.product.findUnique({
+        where: { id },
+      });
 
-  update(id: string, data: { name?: string; price?: number; description?: string }) {
-    const productIndex = this.products.findIndex((p) => p.id === id);
-    if (productIndex === -1) {
+      if (!product) {
+        return {
+          success: false,
+          message: 'Product not found',
+        };
+      }
+
+      return {
+        success: true,
+        data: product,
+      };
+    } catch (error) {
       return {
         success: false,
-        message: 'Product not found',
+        message: 'Failed to fetch product',
+        error: error.message,
       };
     }
-
-    const updatedProduct = {
-      ...this.products[productIndex],
-      ...data,
-      updatedAt: new Date(),
-    };
-
-    this.products[productIndex] = updatedProduct;
-
-    return {
-      success: true,
-      message: 'Product updated successfully',
-      data: updatedProduct,
-    };
   }
 
-  remove(id: string) {
-    const productIndex = this.products.findIndex((p) => p.id === id);
-    if (productIndex === -1) {
+  async create(data: { name: string; price: number; description?: string }) {
+    try {
+      const newProduct = await this.prisma.product.create({
+        data: {
+          name: data.name,
+          price: data.price,
+          description: data.description,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Product created successfully',
+        data: newProduct,
+      };
+    } catch (error) {
       return {
         success: false,
-        message: 'Product not found',
+        message: 'Failed to create product',
+        error: error.message,
       };
     }
+  }
 
-    this.products.splice(productIndex, 1);
+  async update(id: string, data: { name?: string; price?: number; description?: string }) {
+    try {
+      const updatedProduct = await this.prisma.product.update({
+        where: { id },
+        data,
+      });
 
-    return {
-      success: true,
-      message: 'Product deleted successfully',
-    };
+      return {
+        success: true,
+        message: 'Product updated successfully',
+        data: updatedProduct,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Product not found or update failed',
+        error: error.message,
+      };
+    }
+  }
+
+  async remove(id: string) {
+    try {
+      await this.prisma.product.delete({
+        where: { id },
+      });
+
+      return {
+        success: true,
+        message: 'Product deleted successfully',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Product not found or delete failed',
+        error: error.message,
+      };
+    }
+  }
+
+  async onModuleDestroy() {
+    await this.prisma.$disconnect();
   }
 }

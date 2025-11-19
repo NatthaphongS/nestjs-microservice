@@ -1,32 +1,40 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Inject } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { Controller, Get, Post, Put, Delete, Body, Param, Inject, OnModuleInit } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
+import { Observable } from 'rxjs';
+
+interface ProductsService {
+  getAllProducts(data: {}): Observable<any>;
+  getProduct(data: { id: string }): Observable<any>;
+  createProduct(data: { name: string; price: number; description?: string }): Observable<any>;
+  updateProduct(data: { id: string; name?: string; price?: number; description?: string }): Observable<any>;
+  deleteProduct(data: { id: string }): Observable<any>;
+}
 
 @Controller('products')
-export class ProductsController {
+export class ProductsController implements OnModuleInit {
+  private productsService: ProductsService;
+
   constructor(
-    @Inject('PRODUCTS_SERVICE') private readonly productsClient: ClientProxy,
+    @Inject('PRODUCTS_SERVICE') private readonly client: ClientGrpc,
   ) {}
+
+  onModuleInit() {
+    this.productsService = this.client.getService<ProductsService>('ProductsService');
+  }
 
   @Get()
   async findAll() {
-    return await firstValueFrom(
-      this.productsClient.send({ cmd: 'get_all_products' }, {}),
-    );
+    return this.productsService.getAllProducts({});
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return await firstValueFrom(
-      this.productsClient.send({ cmd: 'get_product' }, { id }),
-    );
+    return this.productsService.getProduct({ id });
   }
 
   @Post()
   async create(@Body() createProductDto: { name: string; price: number; description?: string }) {
-    return await firstValueFrom(
-      this.productsClient.send({ cmd: 'create_product' }, createProductDto),
-    );
+    return this.productsService.createProduct(createProductDto);
   }
 
   @Put(':id')
@@ -34,15 +42,11 @@ export class ProductsController {
     @Param('id') id: string,
     @Body() updateProductDto: { name?: string; price?: number; description?: string },
   ) {
-    return await firstValueFrom(
-      this.productsClient.send({ cmd: 'update_product' }, { id, ...updateProductDto }),
-    );
+    return this.productsService.updateProduct({ id, ...updateProductDto });
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return await firstValueFrom(
-      this.productsClient.send({ cmd: 'delete_product' }, { id }),
-    );
+    return this.productsService.deleteProduct({ id });
   }
 }

@@ -1,32 +1,32 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
 import { ProductsService } from './products.service';
 
 @Controller()
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @MessagePattern({ cmd: 'get_all_products' })
+  @GrpcMethod('ProductsService', 'GetAllProducts')
   findAll() {
     return this.productsService.findAll();
   }
 
-  @MessagePattern({ cmd: 'get_product' })
+  @GrpcMethod('ProductsService', 'GetProduct')
   findOne(data: { id: string }) {
     return this.productsService.findOne(data.id);
   }
 
-  @MessagePattern({ cmd: 'create_product' })
+  @GrpcMethod('ProductsService', 'CreateProduct')
   create(data: { name: string; price: number; description?: string }) {
     return this.productsService.create(data);
   }
 
-  @MessagePattern({ cmd: 'update_product' })
+  @GrpcMethod('ProductsService', 'UpdateProduct')
   update(data: { id: string; name?: string; price?: number; description?: string }) {
     return this.productsService.update(data.id, data);
   }
 
-  @MessagePattern({ cmd: 'delete_product' })
+  @GrpcMethod('ProductsService', 'DeleteProduct')
   remove(data: { id: string }) {
     return this.productsService.remove(data.id);
   }

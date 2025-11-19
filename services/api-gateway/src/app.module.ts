@@ -5,6 +5,15 @@ import { AuthController } from './controllers/auth.controller';
 import { UsersController } from './controllers/users.controller';
 import { ProductsController } from './controllers/products.controller';
 import { OrdersController } from './controllers/orders.controller';
+import { join } from 'path';
+import { existsSync } from 'fs';
+
+// Helper function to get proto path
+function getProtoPath(filename: string): string {
+  const dockerPath = join(process.cwd(), `proto/${filename}`);
+  const localPath = join(__dirname, `../../../proto/${filename}`);
+  return existsSync(dockerPath) ? dockerPath : localPath;
+}
 
 @Module({
   imports: [
@@ -12,10 +21,11 @@ import { OrdersController } from './controllers/orders.controller';
     ClientsModule.register([
       {
         name: 'AUTH_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.GRPC,
         options: {
-          host: process.env.AUTH_SERVICE_HOST || 'localhost',
-          port: parseInt(process.env.AUTH_SERVICE_PORT) || 3001,
+          package: 'auth',
+          protoPath: getProtoPath('auth.proto'),
+          url: `${process.env.AUTH_SERVICE_HOST || 'localhost'}:${parseInt(process.env.AUTH_SERVICE_PORT) || 3001}`,
         },
       },
     ]),
@@ -23,10 +33,11 @@ import { OrdersController } from './controllers/orders.controller';
     ClientsModule.register([
       {
         name: 'USERS_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.GRPC,
         options: {
-          host: process.env.USERS_SERVICE_HOST || 'localhost',
-          port: parseInt(process.env.USERS_SERVICE_PORT) || 3002,
+          package: 'users',
+          protoPath: getProtoPath('users.proto'),
+          url: `${process.env.USERS_SERVICE_HOST || 'localhost'}:${parseInt(process.env.USERS_SERVICE_PORT) || 3002}`,
         },
       },
     ]),
@@ -34,10 +45,11 @@ import { OrdersController } from './controllers/orders.controller';
     ClientsModule.register([
       {
         name: 'PRODUCTS_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.GRPC,
         options: {
-          host: process.env.PRODUCTS_SERVICE_HOST || 'localhost',
-          port: parseInt(process.env.PRODUCTS_SERVICE_PORT) || 3003,
+          package: 'products',
+          protoPath: getProtoPath('products.proto'),
+          url: `${process.env.PRODUCTS_SERVICE_HOST || 'localhost'}:${parseInt(process.env.PRODUCTS_SERVICE_PORT) || 3003}`,
         },
       },
     ]),
@@ -45,10 +57,11 @@ import { OrdersController } from './controllers/orders.controller';
     ClientsModule.register([
       {
         name: 'ORDERS_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.GRPC,
         options: {
-          host: process.env.ORDERS_SERVICE_HOST || 'localhost',
-          port: parseInt(process.env.ORDERS_SERVICE_PORT) || 3004,
+          package: 'orders',
+          protoPath: getProtoPath('orders.proto'),
+          url: `${process.env.ORDERS_SERVICE_HOST || 'localhost'}:${parseInt(process.env.ORDERS_SERVICE_PORT) || 3004}`,
         },
       },
     ]),

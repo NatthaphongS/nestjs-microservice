@@ -1,32 +1,40 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Inject } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { Controller, Get, Post, Put, Delete, Body, Param, Inject, OnModuleInit } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
+import { Observable } from 'rxjs';
+
+interface UsersService {
+  getAllUsers(data: {}): Observable<any>;
+  getUser(data: { id: string }): Observable<any>;
+  createUser(data: { email: string; name: string; password: string }): Observable<any>;
+  updateUser(data: { id: string; email?: string; name?: string }): Observable<any>;
+  deleteUser(data: { id: string }): Observable<any>;
+}
 
 @Controller('users')
-export class UsersController {
+export class UsersController implements OnModuleInit {
+  private usersService: UsersService;
+
   constructor(
-    @Inject('USERS_SERVICE') private readonly usersClient: ClientProxy,
+    @Inject('USERS_SERVICE') private readonly client: ClientGrpc,
   ) {}
+
+  onModuleInit() {
+    this.usersService = this.client.getService<UsersService>('UsersService');
+  }
 
   @Get()
   async findAll() {
-    return await firstValueFrom(
-      this.usersClient.send({ cmd: 'get_all_users' }, {}),
-    );
+    return this.usersService.getAllUsers({});
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return await firstValueFrom(
-      this.usersClient.send({ cmd: 'get_user' }, { id }),
-    );
+    return this.usersService.getUser({ id });
   }
 
   @Post()
-  async create(@Body() createUserDto: { email: string; name: string }) {
-    return await firstValueFrom(
-      this.usersClient.send({ cmd: 'create_user' }, createUserDto),
-    );
+  async create(@Body() createUserDto: { email: string; name: string; password: string }) {
+    return this.usersService.createUser(createUserDto);
   }
 
   @Put(':id')
@@ -34,15 +42,11 @@ export class UsersController {
     @Param('id') id: string,
     @Body() updateUserDto: { email?: string; name?: string },
   ) {
-    return await firstValueFrom(
-      this.usersClient.send({ cmd: 'update_user' }, { id, ...updateUserDto }),
-    );
+    return this.usersService.updateUser({ id, ...updateUserDto });
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return await firstValueFrom(
-      this.usersClient.send({ cmd: 'delete_user' }, { id }),
-    );
+    return this.usersService.deleteUser({ id });
   }
 }

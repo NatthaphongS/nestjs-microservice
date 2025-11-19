@@ -2,11 +2,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy proto files
+COPY proto ./proto/
+
+# Copy service files
+COPY services/api-gateway/package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY services/api-gateway/. .
 
 RUN npm run build
 

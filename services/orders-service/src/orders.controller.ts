@@ -1,27 +1,27 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
 import { OrdersService } from './orders.service';
 
 @Controller()
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @MessagePattern({ cmd: 'get_all_orders' })
+  @GrpcMethod('OrdersService', 'GetAllOrders')
   findAll() {
     return this.ordersService.findAll();
   }
 
-  @MessagePattern({ cmd: 'get_order' })
+  @GrpcMethod('OrdersService', 'GetOrder')
   findOne(data: { id: string }) {
     return this.ordersService.findOne(data.id);
   }
 
-  @MessagePattern({ cmd: 'get_user_orders' })
+  @GrpcMethod('OrdersService', 'GetUserOrders')
   findUserOrders(data: { userId: string }) {
     return this.ordersService.findUserOrders(data.userId);
   }
 
-  @MessagePattern({ cmd: 'create_order' })
+  @GrpcMethod('OrdersService', 'CreateOrder')
   create(data: {
     userId: string;
     items: { productId: string; quantity: number; price: number }[];
@@ -29,12 +29,12 @@ export class OrdersController {
     return this.ordersService.create(data);
   }
 
-  @MessagePattern({ cmd: 'update_order_status' })
+  @GrpcMethod('OrdersService', 'UpdateOrderStatus')
   updateStatus(data: { id: string; status: string }) {
     return this.ordersService.updateStatus(data.id, data.status);
   }
 
-  @MessagePattern({ cmd: 'cancel_order' })
+  @GrpcMethod('OrdersService', 'CancelOrder')
   cancel(data: { id: string }) {
     return this.ordersService.cancel(data.id);
   }

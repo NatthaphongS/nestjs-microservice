@@ -1,15 +1,22 @@
 FROM node:20-alpine
 
+# Install dependencies for Prisma
+RUN apk add --no-cache libc6-compat openssl
+
 WORKDIR /app
 
-COPY package*.json ./
-COPY prisma ./prisma/
+# Copy proto files
+COPY proto ./proto/
+
+# Copy service files
+COPY services/users-service/package*.json ./
+COPY services/users-service/prisma ./prisma/
 
 RUN npm install
 
 RUN npx prisma generate
 
-COPY . .
+COPY services/users-service/. .
 
 RUN npm run build
 

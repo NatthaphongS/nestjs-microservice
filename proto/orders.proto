@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package orders;
+
+import "google/protobuf/timestamp.proto";
+
+// Orders Service
+service OrdersService {
+  rpc GetAllOrders (GetAllOrdersRequest) returns (GetAllOrdersResponse);
+  rpc GetOrder (GetOrderRequest) returns (GetOrderResponse);
+  rpc GetUserOrders (GetUserOrdersRequest) returns (GetUserOrdersResponse);
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse);
+  rpc UpdateOrderStatus (UpdateOrderStatusRequest) returns (UpdateOrderStatusResponse);
+  rpc CancelOrder (CancelOrderRequest) returns (CancelOrderResponse);
+}
+
+// Order Item Message
+message OrderItem {
+  string productId = 1;
+  int32 quantity = 2;
+  double price = 3;
+}
+
+// Order Message
+message Order {
+  string id = 1;
+  string userId = 2;
+  repeated OrderItem items = 3;
+  string status = 4;
+  google.protobuf.Timestamp createdAt = 5;
+  google.protobuf.Timestamp updatedAt = 6;
+}
+
+// Get All Orders
+message GetAllOrdersRequest {
+}
+
+message GetAllOrdersResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Order data = 3;
+}
+
+// Get Order
+message GetOrderRequest {
+  string id = 1;
+}
+
+message GetOrderResponse {
+  bool success = 1;
+  string message = 2;
+  Order data = 3;
+}
+
+// Get User Orders
+message GetUserOrdersRequest {
+  string userId = 1;
+}
+
+message GetUserOrdersResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Order data = 3;
+}
+
+// Create Order
+message CreateOrderRequest {
+  string userId = 1;
+  repeated OrderItem items = 2;
+}
+
+message CreateOrderResponse {
+  bool success = 1;
+  string message = 2;
+  Order data = 3;
+}
+
+// Update Order Status
+message UpdateOrderStatusRequest {
+  string id = 1;
+  string status = 2;
+}
+
+message UpdateOrderStatusResponse {
+  bool success = 1;
+  string message = 2;
+  Order data = 3;
+}
+
+// Cancel Order
+message CancelOrderRequest {
+  string id = 1;
+}
+
+message CancelOrderResponse {
+  bool success = 1;
+  string message = 2;
+  Order data = 3;
+}

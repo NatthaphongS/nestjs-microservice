@@ -64,8 +64,8 @@ services:
   # Auth Service
   auth-service:
     build:
-      context: ./services/auth-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/auth-service/Dockerfile
     ports:
       - "3001:3001"
     environment:
@@ -81,8 +81,8 @@ services:
   # Users Service
   users-service:
     build:
-      context: ./services/users-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/users-service/Dockerfile
     ports:
       - "3002:3002"
     environment:
@@ -97,8 +97,8 @@ services:
   # Products Service
   products-service:
     build:
-      context: ./services/products-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/products-service/Dockerfile
     ports:
       - "3003:3003"
     environment:
@@ -133,8 +133,8 @@ services:
   # Orders Service
   orders-service:
     build:
-      context: ./services/orders-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/orders-service/Dockerfile
     ports:
       - "3004:3004"
     environment:
@@ -149,8 +149,8 @@ services:
   # API Gateway
   api-gateway:
     build:
-      context: ./services/api-gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
     ports:
       - "3000:3000"
     environment:

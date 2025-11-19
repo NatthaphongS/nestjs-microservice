@@ -1,32 +1,44 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Inject } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { Controller, Get, Post, Put, Delete, Body, Param, Inject, OnModuleInit } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
+import { Observable } from 'rxjs';
+
+interface OrdersService {
+  getAllOrders(data: {}): Observable<any>;
+  getOrder(data: { id: string }): Observable<any>;
+  getUserOrders(data: { userId: string }): Observable<any>;
+  createOrder(data: {
+    userId: string;
+    items: { productId: string; quantity: number; price: number }[];
+  }): Observable<any>;
+  updateOrderStatus(data: { id: string; status: string }): Observable<any>;
+  cancelOrder(data: { id: string }): Observable<any>;
+}
 
 @Controller('orders')
-export class OrdersController {
+export class OrdersController implements OnModuleInit {
+  private ordersService: OrdersService;
+
   constructor(
-    @Inject('ORDERS_SERVICE') private readonly ordersClient: ClientProxy,
+    @Inject('ORDERS_SERVICE') private readonly client: ClientGrpc,
   ) {}
+
+  onModuleInit() {
+    this.ordersService = this.client.getService<OrdersService>('OrdersService');
+  }
 
   @Get()
   async findAll() {
-    return await firstValueFrom(
-      this.ordersClient.send({ cmd: 'get_all_orders' }, {}),
-    );
+    return this.ordersService.getAllOrders({});
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return await firstValueFrom(
-      this.ordersClient.send({ cmd: 'get_order' }, { id }),
-    );
+    return this.ordersService.getOrder({ id });
   }
 
   @Get('user/:userId')
   async findUserOrders(@Param('userId') userId: string) {
-    return await firstValueFrom(
-      this.ordersClient.send({ cmd: 'get_user_orders' }, { userId }),
-    );
+    return this.ordersService.getUserOrders({ userId });
   }
 
   @Post()
@@ -37,9 +49,7 @@ export class OrdersController {
       items: { productId: string; quantity: number; price: number }[];
     },
   ) {
-    return await firstValueFrom(
-      this.ordersClient.send({ cmd: 'create_order' }, createOrderDto),
-    );
+    return this.ordersService.createOrder(createOrderDto);
   }
 
   @Put(':id/status')
@@ -47,18 +57,11 @@ export class OrdersController {
     @Param('id') id: string,
     @Body() updateStatusDto: { status: string },
   ) {
-    return await firstValueFrom(
-      this.ordersClient.send(
-        { cmd: 'update_order_status' },
-        { id, status: updateStatusDto.status },
-      ),
-    );
+    return this.ordersService.updateOrderStatus({ id, status: updateStatusDto.status });
   }
 
   @Delete(':id')
   async cancel(@Param('id') id: string) {
-    return await firstValueFrom(
-      this.ordersClient.send({ cmd: 'cancel_order' }, { id }),
-    );
+    return this.ordersService.cancelOrder({ id });
   }
 }
